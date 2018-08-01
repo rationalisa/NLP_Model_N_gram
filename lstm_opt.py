@@ -8,9 +8,9 @@ from cs224d.data_utils import *
 CONTEXT_SIZE = 5
 EMBEDDING_DIM = 10
 HIDDEN = 30
-BATCH_SIZE = 5
+BATCH_SIZE = 1
 NUM_LAYER =2
-SEQ = 1
+SEQ = 5
 # file = open('original_rt_snippets.txt')
 # total_sentence = file.read().split()
 

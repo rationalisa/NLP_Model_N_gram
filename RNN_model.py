@@ -58,35 +58,19 @@ curr_lr = 0.001
 for epoch in range(10):
     total_loss = 0
     for context, target in trigrams:
-
-        # Step 1. Prepare the inputs to be passed to the model (i.e, turn the words
-        # into integer indices and wrap them in tensors)
-        # context_idxs = torch.tensor([word_to_ix[w] for w in context], dtype=torch.long)
         vec=[]
         for i in context:
             vec=np.append(vec, dic_list[tok[i.lower()]])
-        # print(vec)
-        # Step 2. Recall that torch *accumulates* gradients. Before passing in a
-        # new instance, you need to zero out the gradients from the old
-        # instance
+
         model.zero_grad()
 
-        # Step 3. Run the forward pass, getting log probabilities over next
-        # words
         log_probs = model(torch.tensor(vec, dtype = torch.float))
 
-        # Step 4. Compute your loss function. (Again, Torch wants the target
-        # word wrapped in a tensor)
-        # print(log_probs.detach().numpy().shape)
-        # output=np.eye(len(vocab))[index-1].reshape(1,-1)
-        # print(output.shape)
         loss = loss_function(log_probs, torch.tensor([word_to_ix[target]], dtype=torch.long))
 
-        # Step 5. Do the backward pass and update the gradient
         loss.backward()
         optimizer.step()
 
-        # Get the Python number from a 1-element Tensor by calling tensor.item()
         total_loss += loss.item()
     losses.append(total_loss)
     if (epoch+1)%20 == 0:

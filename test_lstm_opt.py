@@ -9,10 +9,10 @@ from cs224d.data_utils import *
 
 CONTEXT_SIZE = 5
 EMBEDDING_DIM = 10
-HIDDEN = 10
-BATCH_SIZE = 1
-NUM_LAYER = 2
-SEQ =1
+HIDDEN = 30
+BATCH_SIZE = 5
+NUM_LAYER=2
+SEQ = 1
 class LSTMTagger(nn.Module):
 
     def __init__(self, embedding_dim, hidden_dim, tagset_size):
@@ -38,7 +38,7 @@ class LSTMTagger(nn.Module):
     def forward(self, sentence):
         lstm_out, self.hidden = self.lstm(
             sentence.view(SEQ, BATCH_SIZE, -1), self.hidden)
-        tag_space = self.hidden2tag(lstm_out.view(SEQ, -1))
+        tag_space = self.hidden2tag(lstm_out.view(BATCH_SIZE, -1))
         tag_scores = F.log_softmax(tag_space, dim=1)
         return tag_scores
 
@@ -54,9 +54,13 @@ train_sentence = total[:20000]
 # print(total)
 # we should tokenize the input, but we will ignore that for now
 # build a list of tuples.  Each tuple is ([ word_i-2, word_i-1 ], target word)
-trigrams = [([train_sentence[i], train_sentence[i + 1], train_sentence[i + 2], train_sentence[i + 3],
-              train_sentence[i + 4]], train_sentence[i + 5])
-            for i in range(len(train_sentence) - 5)]
+trigrams = [([train_sentence[i], train_sentence[i + 1], train_sentence[i + 2], train_sentence[i + 3],train_sentence[i + 4],
+              train_sentence[i+1], train_sentence[i+2], train_sentence[i+3], train_sentence[i+4], train_sentence[i+ 5],
+              train_sentence[i+2], train_sentence[i+3], train_sentence[i+4], train_sentence[i+5],train_sentence[i+6],
+              train_sentence[i+3], train_sentence[i+4], train_sentence[i+5], train_sentence[i+6], train_sentence[i+7],
+              train_sentence[i+4], train_sentence[i+5], train_sentence[i+6], train_sentence[i+7], train_sentence[i+8]],
+             [train_sentence[i + 5], train_sentence[i+6], train_sentence[i+7], train_sentence[i+8], train_sentence[i+9]])
+                for i in range(0, len(train_sentence)-5, 5)]
 # print the first 3, just so you can see what they look like
 print(trigrams[:3])
 # print(train_sentence)
@@ -67,8 +71,8 @@ print(dic_list)
 
 
 
-model = LSTMTagger( EMBEDDING_DIM * CONTEXT_SIZE, HIDDEN, len(vocab))
-model.load_state_dict(torch.load('epoch_10_LSTM_50_ayer2'))
+model = LSTMTagger( EMBEDDING_DIM* CONTEXT_SIZE , HIDDEN, len(vocab))
+model.load_state_dict(torch.load('epoch_10_LSTM_50_layer3_seq1_batch5'))
 
 product = 1
 count = 0
@@ -78,10 +82,12 @@ for context, target in trigrams:
         vec = np.append(vec, dic_list[tok[i.lower()]])
 
     log_probs = model(torch.tensor(vec, dtype=torch.float))
-    index = word_to_ix[target]
-    prob = np.exp(log_probs[:,index].detach().numpy()[0])
-    product *= prob
-    count += 1
+    for j in range(BATCH_SIZE):
+        index = word_to_ix[target[j]]
+        # print(log_probs[j][index])
+        prob = np.exp(log_probs[j][index].detach().numpy())
+        product *= prob
+    count += 5
     if count == 10:
         print(count)
         PP=product **(-1/count)
